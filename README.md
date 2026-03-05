@@ -4,20 +4,28 @@
 
 ### Client Mode
 Driver resides on client machine. Application Master is responsible for requesting for executors initially.
+<img width="746" height="373" alt="image" src="https://github.com/user-attachments/assets/cb438ce7-fc2b-484d-ba9e-d047ce1aeb7d" />
+
 
 ### Cluster Mode
 Driver resides on Cluster along with Application Master [AM]. When user submits a Spark Application using spark-submit utility, resource manager immediately deploys an AM along with Driver. Now Driver is responsible for requesting Executor nodes from Resource Manager [RM]. Spark will now pass instruction to drivers directly and executors will run tasks and report back to the driver which finally submit the output to the user.
+<img width="757" height="373" alt="image" src="https://github.com/user-attachments/assets/dd140aee-ce2f-4ddd-9161-1d7cf138b3f9" />
+
 
 ### Local Mode
 Spark will create a driver and executors in the same container on your PC inside a JVM. There is no requirement of a RM.
 
 ## Catalyst Optimizer
 
+<img width="742" height="369" alt="image" src="https://github.com/user-attachments/assets/10d6cc35-9c3f-40ef-9d89-832bf5f1bdb4" />
+
 Spark SQL uses the Catalyst optimizer to optimize structured queries expressed in SQL or via the DataFrame/Dataset APIs. When a query is submitted on the driver, Spark first creates an unresolved logical plan. The Analyzer then resolves references (columns, tables, functions, etc.) using the catalog to produce a resolved logical plan.
 
 Next, Spark applies rule-based optimizations to generate an optimized logical plan (such as predicate pushdown, projection pruning, and constant folding). Based on this optimized logical plan, Spark generates one or more physical plans. Using a combination of heuristics and an optional cost-based optimizer (when statistics are available), Spark selects the most efficient physical plan by considering factors like scans, shuffles, and execution cost. Finally, the selected physical plan is executed across the executors.
 
 ## Internals of Spark Architecture
+
+<img width="726" height="268" alt="image" src="https://github.com/user-attachments/assets/e9d67470-357e-436b-943a-f2623d7a61e1" />
 
 Inside the Spark resides the DAG Scheduler & Task scheduler.
 
@@ -61,6 +69,9 @@ Spark OOM can happen either at Driver or Executor level. Driver OOM usually happ
 - **JPM process memory in executors** start Java heap memory
 - **Memory Overhead** in Spark is the extra off-heap memory allocated to executors for shuffle, native libraries, Python processes, and network buffers. If it's too small, YARN kills the container even when heap memory is available.
 - **On-heap Memory vs Off-heap Memory**
+
+<img width="1094" height="604" alt="image" src="https://github.com/user-attachments/assets/056ca7a3-96d1-4aed-ad16-ed5ffbeac88f" />
+
 
 ## Other Topics
 
