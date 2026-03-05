@@ -9,8 +9,8 @@ Driver resides on client machine. Application Master is responsible for requesti
 
 ### Cluster Mode
 Driver resides on Cluster along with Application Master [AM]. When user submits a Spark Application using spark-submit utility, resource manager immediately deploys an AM along with Driver. Now Driver is responsible for requesting Executor nodes from Resource Manager [RM]. Spark will now pass instruction to drivers directly and executors will run tasks and report back to the driver which finally submit the output to the user.
-<img width="757" height="373" alt="image" src="https://github.com/user-attachments/assets/dd140aee-ce2f-4ddd-9161-1d7cf138b3f9" />
 
+<img width="757" height="373" alt="image" src="https://github.com/user-attachments/assets/dd140aee-ce2f-4ddd-9161-1d7cf138b3f9" />
 
 ### Local Mode
 Spark will create a driver and executors in the same container on your PC inside a JVM. There is no requirement of a RM.
