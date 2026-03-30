@@ -21,7 +21,7 @@ Spark will create a driver and executors in the same container on your PC inside
 
 Spark SQL uses the Catalyst optimizer to optimize structured queries expressed in SQL or via the DataFrame/Dataset APIs. When a query is submitted on the driver, Spark first creates an unresolved logical plan. The Analyzer then resolves references (columns, tables, functions, etc.) using the catalog to produce a resolved logical plan.
 
-Next, Spark applies rule-based optimizations to generate an optimized logical plan (such as predicate pushdown, projection pruning, and constant folding). Based on this optimized logical plan, Spark generates one or more physical plans. Using a combination of heuristics and an optional cost-based optimizer (when statistics are available), Spark selects the most efficient physical plan by considering factors like scans, shuffles, and execution cost. Finally, the selected physical plan is executed across the executors.
+Next, Spark applies rule-based optimizations to generate an optimized logical plan (such as predicate pushdown, projection pruning, and constant folding). Based on this optimized logical plan, Spark generates one or more physical plans. Using a combination of heuristics and an optional cost-based optimizer (when statistics are available), Spark selects the most efficient physical plan by considering factors like scans, shuffles, and execution cost. Once the plan is finalized, Spark doesn't interpret it line-by-line like standard Python. Instead, it uses Whole-Stage Code Generation to compile the entire pipeline into optimized Java bytecode.
 
 ## Internals of Spark Architecture
 
@@ -76,14 +76,14 @@ Spark OOM can happen either at Driver or Executor level. Driver OOM usually happ
 ## Other Topics
 
 ### 1. AQE (Adaptive Query Execution)
-Adaptive Query Execution is an optimization in Apache Spark (3.0+) which uses actual runtime statistics to actively optimize the spark query plans during runtime. Traditionally, Spark generates a physical plan before execution using estimated statistics (like table size, row count, etc.). However, these estimates may be inaccurate. An example would be spark read and estimated a table to be very big, but it was small. If this is checked during runtime via statistics, spark will broadcast this table using AQE optimization.
+a.	Adaptive Query Execution is an optimization in Apache spark (3.0+) which actual runtime statistics to actively optimize the spark query plans during runtime. Traditionally, Spark generates a physical plan before execution using estimated statistics (like table size, row count, etc.). However, these estimates may be inaccurate. An example would spark read and estimated a table to be very big, but it was small, if this is checked during runtime via statistics, spark will broadcast this table using AQE optimization.
 
 ### 2. Tungsten
-Tungsten is Spark's optimized execution engine that improves performance by using off-heap memory management and whole-stage code generation.
+Tungsten is Spark’s optimized execution engine that improves performance by using whole-stage code generation and off-heap memory management.
 
 **It improves:**
-- **Memory Management** — Reduces JVM garbage collection overhead by leveraging off-heap memory management and efficient binary formats.
 - **Whole-Stage Code Generation** — Generates much more optimized and efficient low-level machine bytecode at runtime and combine them into single optimized code block to optimize query execution.
+- **Memory Management** — Reduces JVM garbage collection overhead by leveraging off-heap memory management and efficient binary formats.
 
 ### 3. UDF (User Defined Functions)
 UDF allows you to write custom logic in Python and apply it to DataFrame columns when built-in Spark SQL functions are not sufficient.
@@ -127,7 +127,7 @@ A method used to decrease (reduce) the number of partitions by moving the data f
 **Syntax:** `df.coalesce(<NoOfPartitions>)`
 
 ### 7. Broadcast Variables
-This concept is similar to Broadcasting Joins, it caches a read-only variable on all worker nodes (executors), rather than sending a copy of it with every task to avoid repeated data transmission. **Usecase:** Small lookup tables
+This concept is similar to Broadcasting Joins, it caches a read-only variable on all worker nodes (executors), rather than sending a copy of it with every task to avoid a repeated data transmission. Usecase: Small lookup tables
 
 ### 8. Accumulators
 A shared value that can be accumulated. Worker tasks on a Spark cluster can add values to an Accumulator but only the driver program is allowed to access its value. Updates from the workers get propagated automatically to the driver program.
@@ -181,7 +181,7 @@ Non-skewed keys remain mostly unchanged to avoid unnecessary reshuffling of unaf
 ### 14. Bucketing vs Partitioning
 
 #### Bucketing
-An optimization where data is distributed across multiple buckets or files based on the hash of a column value. It works by specifying a column and number of buckets during the creation of the DataFrame. Spark then applies a hash function to the specified column and divides the data into buckets corresponding to the hash values.
+An optimization where data is distributed across multiple buckets or files based on the hash of a column value. It works by specifying a column and number of buckets during the creation of the DataFrame. Spark then applies a hash function to the specified column and divides the data into buckets corresponding to the hash values. Bucketing only works with Hive/Spark managed tables.
 
 #### Partitioning
 Refers to the division of data into smaller, more manageable chunks known as partitions. Partitions are the basic units of parallelism in Spark, and they allow the framework to process different portions of the data simultaneously on different nodes in a cluster.
@@ -191,10 +191,10 @@ Refers to the division of data into smaller, more manageable chunks known as par
 2. **Partitioning on disk**: Physical partitioning of data files using partitionBy()
 
 ### 15. File Formats & IO
-- CSV
-- JSON
-- Columnar (Parquet/ORC)
-- Delta
+- CSV: No predicate / projection pushdown, no schema evolution, schema needs to be inferred (incase of defective records -> .mode(‘dropMalformed’))
+- JSON: No predicate / projection pushdown, schema needs to be inferred
+- Columnar (Parquet/ORC): Predicate / Projection pushdown supported
+- AVRO: No predicate / projection pushdown, schema needs to be inferred
 
 ### 16. Types of Joins [Not for interview POV]
 
@@ -234,7 +234,7 @@ spark-submit is the client program that starts your application.
 **Flow:** spark-submit → driver → jobs → stages → tasks → executors → serialization/deserialization → results
 
 #### Serialization
-Serialization occurs when converting objects into a stream of bytes and vice-versa (De-Serialization) in an optimal way to transfer over nodes of network or to store it in file/memory buffer. Spark provides two serialization libraries: Java (default), Kyro (recommended).
+Serialization occurs when converting objects into a stream of bytes and vice-versa (De-Serialization) in an optimal way to transfer over nodes of network or to store it in file/memory buffer. Spark provides two serialization libraries: Java (default), Kyro (recommended). 
 
 Serialization is mostly done by the driver and executors. Each task is serialized and sent to executors. Executors run the tasks on worker nodes and results are sent back to the driver if needed. Spark handles deserialization of results on the driver side.
 
